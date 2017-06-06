@@ -1,7 +1,7 @@
 # load a YT playlist and feed it into the YT downloader software already on my PC
 # move that file to a directory, and rename it to something readable if possible
 
-import re, os, subprocess, time, shutil
+import re, os, subprocess, time, shutil, smtplib
 
 
 def get_ytdl_dir():
@@ -20,6 +20,43 @@ def get_library_dir():
     else:
         direc = r"C:\Users\Admin\Desktop\YT downloader\library_dir"
     return direc
+
+
+def get_gm_access():
+    f = open(r'C:\KP Python\dont_share\config.txt', 'r')  # import config info
+    f_str = str((f.read()))  # import config info
+    p = f_str[19:30]
+    u = f_str[43:66]
+    return u, p
+
+
+def send_email(u, p, recipient, subject, body):
+
+    gm_u = u
+    gm_p = p
+    FROM = u
+    TO = recipient if type(recipient) is list else [recipient]
+    SUBJECT = subject
+    TEXT = body
+
+    # Prepare actual message
+    message = """From: %s\nTo: %s\nSubject: %s\n\n%s
+    """ % (FROM, ", ".join(TO), SUBJECT, TEXT)
+    try:
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.ehlo()
+        server.starttls()
+        server.login(gm_u, gm_p)
+        server.sendmail(FROM, TO, message)
+        server.close()
+        print('successfully sent the mail')
+    except:
+        print('failed to send mail')
+
+
+u_and_p = get_gm_access()   # returns u p tuple for gm
+
+send_email(u_and_p[0], u_and_p[1], u_and_p[0], 'subject text is this', 'message body is this text')
 
 
 playlist = r'https://www.youtube.com/playlist?list=PLnwDsHHQyShyCo7o0hUbG23my2ms_Qp_B'  # not yet in use
