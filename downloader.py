@@ -128,8 +128,8 @@ abspath = os.path.abspath('.')  # define abspath
 lib_dir = get_library_dir()     # define library dir (depends which PC I'm on)
 movie_extensions = ['.mov', '.mp4', '.mkv', '.avi', '.flv']
 move_videos(ytdl_path, movie_extensions, lib_dir)  # TO DO: currently this script only uses the first ID / URL detected. Need to tell it to use only newly found ones
-send_email(u_and_p[0], u_and_p[1], u_and_p[0], 'subject text is this', urls)  # send em
+send_email(u_and_p[0], u_and_p[1], u_and_p[0], 'Py Script - new vids DLed from YT', urls)  # send em
 
 # TO DO: enable fresh downloading of HTML
-# TO DO: ensure only newly-added IDs / URLs are processed
+# TO DO: ensure only newly-added IDs / URLs are processed. Add them to xls, sql or txt file to serve as long term memory
 # TO DO: set to run at a particular time of day
