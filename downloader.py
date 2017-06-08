@@ -4,10 +4,17 @@
 import re, os, subprocess, time, shutil, smtplib
 
 
-def get_ytdl_dir():
+def which_pc():
     if os.path.exists(r"C:\Program Files\StableBit\DrivePool"):
+        return 'desktop'
+    else:
+        return 'laptop'
+
+
+def get_ytdl_dir():
+    if machine == 'desktop':
         print("Kev's Home PC detected, setting YT Downloader and Plex library directories accordingly\n")
-        direc = r"NEED TO ADD THIS"   # note this this the hardcoded directory for when working on Home PC
+        direc = r"C:\Users\kevin\Desktop\Youtube Downloader"   # note this this the hardcoded directory for when working on Home PC
     else:
         print("This isn't Kev's Home PC, must be laptop, so setting YT Downloader directory accordingly\n")
         direc = r"C:\Users\Admin\Desktop\YT downloader"
@@ -15,19 +22,41 @@ def get_ytdl_dir():
 
 
 def get_library_dir():
-    if os.path.exists(r"C:\Program Files\StableBit\DrivePool"):
-        direc = r"NEED TO ADD THIS"   # note this this the hardcoded directory for when working on Home PC
+    if machine == 'desktop':
+        direc = r"C:\Github local repos\test"   # TEST - note this this the hardcoded directory on Home PC
     else:
         direc = r"C:\Users\Admin\Desktop\YT downloader\library_dir"
     return direc
 
 
-def get_gm_access():
-    f = open(r'C:\KP Python\dont_share\config.txt', 'r')  # import config info
+def get_config_file():
+    if machine == 'desktop':
+        config = r"C:\Github local repos\dont_share\config.txt"   # TEST - note this this the hardcoded directory on Home PC
+    else:
+        config = r"C:\KP Python\dont_share\config.txt"
+    return config
+
+
+def get_em_access():
+    f = open(config_file, 'r')  # import config info
     f_str = str((f.read()))  # import config info
-    p = f_str[19:30]
-    u = f_str[43:66]
+    p = f_str[19:31]
+    u = f_str[44:67]
     return u, p
+
+
+def get_playlist_url():
+    f = open(config_file, 'r')  # import config info
+    f_str = str((f.read()))  # import config info
+    url = f_str[83:155]
+    return url
+
+
+def generate_mo(string_to_search):
+    regex = '(https:\/\/www.youtube.com/watch\?v=)([^#\&\?]*)(&amp)'  # find all video IDs in string
+    projectsRegex = re.compile(regex)  # define Regex
+    match_object = projectsRegex.findall(string_to_search)  # search string using Regex
+    return match_object
 
 
 def send_email(u, p, recipient, subject, body):
@@ -54,32 +83,18 @@ def send_email(u, p, recipient, subject, body):
         print('failed to send mail')
 
 
-u_and_p = get_gm_access()   # returns u p tuple for gm
-
-send_email(u_and_p[0], u_and_p[1], u_and_p[0], 'subject text is this', 'message body is this text')
-
-
-playlist = r'https://www.youtube.com/playlist?list=PLnwDsHHQyShyCo7o0hUbG23my2ms_Qp_B'  # not yet in use
-
+machine = which_pc()    # determine if on Home PC or laptop
+config_file = get_config_file()     # access config file
+u_and_p = get_em_access()   # returns u p tuple for em access
+# send_email(u_and_p[0], u_and_p[1], u_and_p[0], 'subject text is this', 'message body is this text') # send em
+playlist = get_playlist_url()  # get yt playlist URL, not yet in use
 localFile = open(r'html\yt.html', 'r')  # test mode - uses pre-downloaded HTML
 local_string = str((localFile.read()))  # test mode - converts downloaded HTML to string
+mo = generate_mo(local_string)
 
-regex = '(https:\/\/www.youtube.com/watch\?v=)([^#\&\?]*)(&amp)' # find all video IDs in string
-
-projectsRegex = re.compile(regex)       # define Regex
-mo = projectsRegex.findall(local_string)    # search string using Regex
-
-ID_list = []
-for i in range(0, len(mo) - 1):
-    ID_list.append(mo[i][1])    # add all found video IDs to ID_list
-
-set_list = set(ID_list)     # de-dupe ID list by converting list to set
-
-URLs_list = []
-for id in set_list:
-    URLs_list.append("https://www.youtube.com/watch?v=" + id)   # convert IDs to full Youtube URLs
-#print(URLs_list)
-
+ytid_list = set([mo[i][1] for i in range(0, len(mo) - 1)])  # add all found video IDs to ID_list
+URLs_list = ["https://www.youtube.com/watch?v=" + ytid for ytid in ytid_list]   # expand yt ids to yt URLs
+print('URLs list is: {}'.format(URLs_list))
 
 ytdl_path = get_ytdl_dir()   # define YT Downloader dir depending on if Home PC or laptop
 
