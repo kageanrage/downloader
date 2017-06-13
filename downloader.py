@@ -93,14 +93,15 @@ def move_videos(ytdl_path2, movie_extensions2, lib_dir2):
     abspath_yt = os.path.abspath('.')  # define abspath
     for filename in os.listdir(ytdl_path2):  # for each file in folder
         basename, ext = os.path.splitext(filename)  # isolate basename and extensions
+        new_basename = filename.split('-')[0]   # trims basename of anything after the first dash
         if ext in movie_extensions2:
             original_fullname = os.path.join(abspath_yt, filename)
-            new_fullname = os.path.join(lib_dir2, filename)
+            new_fullname = os.path.join(lib_dir2, new_basename + ext)
             # print('Original fullname is {} \n New fullname is {}\n'.format(original_fullname, new_fullname))
             print('moving {} to {}'.format(original_fullname, new_fullname))
             shutil.move(original_fullname, new_fullname)  # move the video files to the library folder
-        else:
-            print('{} not a video file so not moving'.format(filename))
+        # else:
+        #   print('{} not a video file so not moving'.format(filename))
 
 
 def check_for_new_urls(urlz):
