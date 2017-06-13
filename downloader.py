@@ -1,7 +1,7 @@
 # load a YT playlist and feed it into the YT downloader software already on my PC
 # move that file to a directory, and rename it to something readable if possible
 
-import re, os, subprocess, time, shutil, smtplib
+import re, os, subprocess, time, shutil, smtplib, requests, bs4
 
 
 def which_pc():
@@ -11,36 +11,9 @@ def which_pc():
         return 'laptop'
 
 
-def get_ytdl_dir():
-    if machine == 'desktop':
-        direc = r"C:\Users\kevin\Desktop\Youtube Downloader"   # note this this the hardcoded directory for when working on Home PC
-        print("Kev's Home PC detected, setting YT Downloader dir to {}".format(direc))
-    else:
-
-        direc = r"C:\Users\Admin\Desktop\YT downloader"
-        print("This isn't Kev's Home PC, must be laptop, so setting YT Downloader dir to {}\n".format(direc))
-    return direc
-
-
-def get_library_dir():
-    if machine == 'desktop':
-        direc = r"C:\Github local repos\test"   # TEST - note this this the hardcoded directory on Home PC
-    else:
-        direc = r"C:\Users\Admin\Desktop\YT downloader\library_dir"
-    return direc
-
-
-def get_base_dir():
-    if machine == 'desktop':
-        direc = r"C:\Github local repos\downloader"   # TEST - note this this the hardcoded directory on Home PC
-    else:
-        direc = r"C:\KP Python\downloader"
-    return direc
-
-
 def get_config_file():
     if machine == 'desktop':
-        config = r"C:\Github local repos\dont_share\config.txt"   # TEST - note this this the hardcoded directory on Home PC
+        config = r"C:\Github local repos\dont_share\config.txt"
     else:
         config = r"C:\KP Python\dont_share\config.txt"
     return config
@@ -61,8 +34,35 @@ def get_playlist_url():
     return url
 
 
+def get_ytdl_dir():
+    if machine == 'desktop':
+        direc = r"C:\Users\kevin\Desktop\Youtube Downloader"   # note this this the hardcoded directory for when working on Home PC
+        # print("Kev's Home PC detected, setting YT Downloader dir to {}".format(direc))
+    else:
+
+        direc = r"C:\Users\Admin\Desktop\YT downloader"
+        # print("This isn't Kev's Home PC, must be laptop, so setting YT Downloader dir to {}\n".format(direc))
+    return direc
+
+
+def get_library_dir():
+    if machine == 'desktop':
+        direc = r"C:\Github local repos\test"   # TEST - note this this the hardcoded directory on Home PC
+    else:
+        direc = r"C:\Users\Admin\Desktop\YT downloader\library_dir"
+    return direc
+
+
+def get_base_dir():
+    if machine == 'desktop':
+        direc = r"C:\Github local repos\downloader"   # TEST - note this this the hardcoded directory on Home PC
+    else:
+        direc = r"C:\KP Python\downloader"
+    return direc
+
+
 def generate_mo(string_to_search):
-    regex = '(https:\/\/www.youtube.com/watch\?v=)([^#\&\?]*)(&amp)'  # find all video IDs in string
+    regex = '(\/watch\?v=)([^#\&\?]*)(&amp)'  # find all video IDs in string
     projectsRegex = re.compile(regex)  # define Regex
     match_object = projectsRegex.findall(string_to_search)  # search string using Regex
     return match_object
@@ -71,7 +71,7 @@ def generate_mo(string_to_search):
 def get_URLs_list(m_o):
     ytid_list = set([m_o[i][1] for i in range(0, len(m_o) - 1)])  # add all found video IDs to ID_list
     URLs_list = ["https://www.youtube.com/watch?v=" + ytid for ytid in ytid_list]   # expand yt ids to yt URLs
-    print('URLs list is: {}'.format(URLs_list))
+    # print('URLs list is: {}'.format(URLs_list))
     return URLs_list
 
 
@@ -85,7 +85,7 @@ def download_videos(urlz):
         print('TEST - pretending to download {}'.format(command))
         subprocess.call(command)
         print('Sleeping for 3 sec...')
-        time.sleep(3)
+        # time.sleep(3)
 
 
 def move_videos(ytdl_path2, movie_extensions2, lib_dir2):
@@ -143,13 +143,33 @@ def send_email(u, p, recipient, subject, urlz):
         print('failed to send mail')
 
 
+def get_local_string():
+    if test_mode:
+        file = open(r'html\yt.html', 'r')  # test mode - uses pre-downloaded HTML
+        string = str((file.read()))
+        return string
+
+    else:
+        res = requests.get(playlist)
+        # res.raise_for_status()
+        data = res.text
+        soup = bs4.BeautifulSoup(data, "lxml").encode("ascii")
+        the_string = str(soup)
+        # print('Soup is {}'.format(soup))
+        # print('String is {}'.format(string))
+        os.chdir(get_base_dir())
+        source_file = open(os.path.join(os.getcwd(), 'source.txt'), 'w')
+        source_file.write(the_string)
+        source_file.close()
+        return the_string
+
+test_mode = False
+
 machine = which_pc()    # determine if on Home PC or laptop
 config_file = get_config_file()     # access config file
 u_and_p = get_em_access()   # returns u p tuple for em access
-
 playlist = get_playlist_url()  # get yt playlist URL, not yet in use
-localFile = open(r'html\yt.html', 'r')  # test mode - uses pre-downloaded HTML
-local_string = str((localFile.read()))  # test mode - converts downloaded HTML to string
+local_string = get_local_string()
 mo = generate_mo(local_string)  # pass in string to search and return match object
 urls = get_URLs_list(mo)    # pass in mo and return list of YT video URLs
 ytdl_path = get_ytdl_dir()   # define YT Downloader dir depending on if Home PC or laptop
@@ -161,9 +181,6 @@ if len(new_urls) > 0:
     movie_extensions = ['.mov', '.mp4', '.mkv', '.avi', '.flv', '.webm']
     move_videos(ytdl_path, movie_extensions, lib_dir)  # TO DO: currently this script only uses the first ID / URL detected. Need to tell it to use only newly found ones
     send_email(u_and_p[0], u_and_p[1], u_and_p[0], 'Py Script - new vids DLed from YT', new_urls)  # send em
-
-
-# TO DO: enable fresh downloading of HTML
 
 
 # TO DO: set to run at a particular time of day
