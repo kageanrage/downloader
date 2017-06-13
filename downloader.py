@@ -47,7 +47,7 @@ def get_ytdl_dir():
 
 def get_library_dir():
     if machine == 'desktop':
-        direc = r"C:\Github local repos\test"   # TEST - note this this the hardcoded directory on Home PC
+        direc = r"H:\Downloads\Server Downloads\Complete\Other video\AutoDownload"   # TEST - note this this the hardcoded directory on Home PC
     else:
         direc = r"C:\Users\Admin\Desktop\YT downloader\library_dir"
     return direc
@@ -82,9 +82,9 @@ def download_videos(urlz):
     for url in urlz:
         args = url
         command = exe_with_path + " " + args
-        print('TEST - pretending to download {}'.format(command))
+        # print('TEST - pretending to download {}'.format(command))
         subprocess.call(command)
-        print('Sleeping for 3 sec...')
+        # print('Sleeping for 3 sec...')
         # time.sleep(3)
 
 
@@ -151,16 +151,15 @@ def get_local_string():
 
     else:
         res = requests.get(playlist)
-        # res.raise_for_status()
         data = res.text
-        soup = bs4.BeautifulSoup(data, "lxml").encode("ascii")
+        soup = bs4.BeautifulSoup(data, "lxml").encode("ascii") # encode is to neutralise weird characters
         the_string = str(soup)
         # print('Soup is {}'.format(soup))
         # print('String is {}'.format(string))
         os.chdir(get_base_dir())
-        source_file = open(os.path.join(os.getcwd(), 'source.txt'), 'w')
-        source_file.write(the_string)
-        source_file.close()
+        # source_file = open(os.path.join(os.getcwd(), 'source.txt'), 'w')  # just to view source if desired
+        # source_file.write(the_string)  # just to view source if desired
+        # source_file.close()  # just to view source if desired
         return the_string
 
 test_mode = False
@@ -181,6 +180,3 @@ if len(new_urls) > 0:
     movie_extensions = ['.mov', '.mp4', '.mkv', '.avi', '.flv', '.webm']
     move_videos(ytdl_path, movie_extensions, lib_dir)  # TO DO: currently this script only uses the first ID / URL detected. Need to tell it to use only newly found ones
     send_email(u_and_p[0], u_and_p[1], u_and_p[0], 'Py Script - new vids DLed from YT', new_urls)  # send em
-
-
-# TO DO: set to run at a particular time of day
