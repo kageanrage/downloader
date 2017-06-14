@@ -181,7 +181,3 @@ if len(new_urls) > 0:
     movie_extensions = ['.mov', '.mp4', '.mkv', '.avi', '.flv', '.webm']
     move_videos(ytdl_path, movie_extensions, lib_dir)  # TO DO: currently this script only uses the first ID / URL detected. Need to tell it to use only newly found ones
     send_email(u_and_p[0], u_and_p[1], u_and_p[0], 'Py Script - new vids DLed from YT', new_urls)  # send em
-exit_value = input('Press any key to exit')
-if not exit_value:
-    sys.exit()
-
