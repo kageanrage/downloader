@@ -1,1 +1,1 @@
-@"C:\Program Files\Python37\python.exe" "C:\Github local repos\downloader\downloader.py"
+@"python.exe" "C:\Github local repos\downloader\downloader.py"
